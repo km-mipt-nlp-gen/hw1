@@ -234,7 +234,7 @@ class ChatService:
         reduced_embeddings = pca.fit_transform(embeddings)
         return reduced_embeddings
 
-    def find_similar_answers_cross_enc(self, query, user):
+    def find_top_n_unique_answers_cross_enc(self, query, user):
         self.chat_util.timestamp_log("find_similar_answers_cross_enc - старт выполнения")
         query = self.enrich_query_with_context(query, user)
 

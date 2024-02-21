@@ -1,6 +1,7 @@
 import threading
 from flask import Flask, jsonify, request
-from pyngrok import ngrok
+from pyngrok import ngrok, conf
+import getpass
 
 
 class ChatController:
@@ -39,10 +40,18 @@ class ChatController:
             response = self.chat_service.find_top_n_unique_answers_cross_enc(query, user)
             return jsonify(response=response)
 
+    def init_conf(self):
+        conf.get_default().auth_token = getpass.getpass()
+
     def run(self):
+        tunnels = ngrok.get_tunnels()
+        for tunnel in tunnels:
+            ngrok.disconnect(tunnel.public_url)
+
+        ngrok.kill()
         public_url = ngrok.connect(5000).public_url
         print(" * ngrok tunnel \"{}\" -> \"http://127.0.0.1:{}/\"".format(public_url, 5000))
         self.app.config["BASE_URL"] = public_url
 
         # запустить в отдельном потоке
-        threading.Thread(target=app.run, kwargs={"use_reloader": False}).start()
+        threading.Thread(target=self.app.run, kwargs={"use_reloader": False}).start()

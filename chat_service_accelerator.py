@@ -22,7 +22,7 @@ class ChatServiceAccelerator:
 
     def preprocess_answer_embedding(self, answer):
         self.ensure_model_on_device()
-        answer_tokens = self.model.tokenizer(answer, return_tensors="pt", padding='max_length', truncation=True,
+        answer_tokens = self.model.bert_tokenizer(answer, return_tensors="pt", padding='max_length', truncation=True,
                                              max_length=128).to(self.constants.device)
         with torch.no_grad():
             answer_embeds = self.model.bert_model(input_ids=answer_tokens['input_ids'],
@@ -44,9 +44,9 @@ class ChatServiceAccelerator:
             question, answer = qa_pair[self.constants.PREMISE_UPDATED_COL], qa_pair[
                 self.constants.TARGET_CHAR_ANSWER_COL]
 
-            question_tokens = self.model.tokenizer(question, return_tensors="pt", padding='max_length', truncation=True,
+            question_tokens = self.model.bert_tokenizer(question, return_tensors="pt", padding='max_length', truncation=True,
                                                    max_length=128).to(self.constants.device)
-            answer_tokens = self.model.tokenizer(answer, return_tensors="pt", padding='max_length', truncation=True,
+            answer_tokens = self.model.bert_tokenizer(answer, return_tensors="pt", padding='max_length', truncation=True,
                                                  max_length=128).to(self.constants.device)
 
             with torch.no_grad():

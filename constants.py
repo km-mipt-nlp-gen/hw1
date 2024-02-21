@@ -1,7 +1,8 @@
-import torch
+import random
 from multiprocessing import cpu_count
 import numpy as np
-import random
+import pandas as pd
+import torch
 
 
 class Constants:
@@ -40,6 +41,7 @@ class Constants:
 
     SPOKEN_WORDS_COL = 'spoken_words'
     PREMISE_COL = 'premise'
+    PREMISE_UPDATED_COL = 'premise_updated_col'
     TARGET_CHAR_ANSWER_COL = 'target_char_answer_col'
 
     SAME_LOC_ID_COL = 'same_location_id_dialog'
@@ -51,9 +53,10 @@ class Constants:
     INVALID_QA_MARK = 0
     VALID_QA_MARK = 1
 
+    # глубина контекста для обучения
     LAG_COUNT = 3
 
-    # Столбцы для сортировки
+    # столбцы для сортировки
     SIMPS_DF_SORT_BY_COLS = [EPISODE_ID_COL, NUMBER_COL]
 
     ''' Прочие константы '''
@@ -64,12 +67,14 @@ class Constants:
     SEED = 14
     EPOCHS_OVERFIT_COUNT = 1
     BATCH_SIZE = 16
+    MAX_LENGTH = 128
 
     # вывод
     BI_ENCODER_TOP_N = 8
     GPU_FAISS_INDEX = True
     CROSS_ENCODER_TOP_N = 8
     CROSS_ENCODER_CHUNK_SIZE = 10
+    PCA_COMPONENTS_COUNT = 768
 
     PROC_COUNT = cpu_count()
     print(f"Число процессов для использования: {PROC_COUNT}")
@@ -85,3 +90,11 @@ class Constants:
 
     torch.backends.cudnn.deterministic = True  # для воспроизводимости
     torch.backends.cudnn.benchmark = False
+
+    # логирование
+    LOG_FORMAT = 'time="%(asctime)s" level="%(levelname)s" module="%(filename)s" function="%(funcName)s" line=%(lineno)d msg="%(message)s"'
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+    pd.set_option('display.width', None)  # Автоматическая ширина столбцов
+    pd.set_option('display.max_colwidth', None)  # Полное отображение содержимого столбцов
+    pd.set_option('display.max_columns', None)  # Полное отображение столбцов (все)
+    pd.set_option('display.max_rows', None)  # Полное отобрадение рядов (все)

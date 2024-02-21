@@ -6,14 +6,18 @@ from sklearn.decomposition import PCA
 
 class ChatService:
     def __init__(self, chat_msgs_history, chat_repository, constants, chat_util):
-        self._chat_msgs_history = chat_msgs_history
         self.repository = chat_repository
+        self.repository.chat_msgs_history = chat_msgs_history
         self.constants = constants
         self.chat_util = chat_util
 
     @property
     def chat_msgs_history(self):
         return self.repository.chat_msgs_history
+
+    @chat_msgs_history.setter
+    def chat_msgs_history(self, value):
+        self.repository.chat_msgs_history = value
 
     @property
     def preprocessed_questions_answers_embeddings(self):
@@ -55,10 +59,28 @@ class ChatService:
     def preprocessed_questions_answers_embeddings_faiss_index(self):
         return self.repository.preprocessed_questions_answers_embeddings_faiss_index
 
-    def get_query_answers_embeddings_bi_encoder(self, tokenizer, question):
+    def enrich_query_with_context(self, query, user):
+        formatted_query = f"{user}: {query}"
+
+        # добавить последнюю реплику к chat_msgs_history
+        self.chat_msgs_history.append(formatted_query)
+
+        recent_msgs = self.chat_msgs_history[-self.constants.LAG_COUNT:]
+
+        updated_query_parts = []
+        for i, msg in enumerate(reversed(recent_msgs), start=1):
+            updated_query_parts.append(f'R_{i}: "{msg}"')
+
+        updated_query_parts = updated_query_parts[::-1]
+
+        updated_query = "; ".join(updated_query_parts)
+        return updated_query
+
+    def get_query_answers_embeddings_bi_encoder(self, query):
         self.bi_encoder_model = self.bi_encoder_model.to(self.constants.device)
-        question_tokens = tokenizer(question, return_tensors="pt", padding='max_length', truncation=True,
-                                    max_length=128).to(self.constants.device)
+        question_tokens = self.bi_encoder_model.tokenizer(query, return_tensors="pt", padding='max_length',
+                                                          truncation=True,
+                                                          max_length=128).to(self.constants.device)
         with torch.no_grad():
             question_embeds = self.bi_encoder_model.bert_model(input_ids=question_tokens['input_ids'],
                                                                attention_mask=question_tokens[
@@ -77,14 +99,17 @@ class ChatService:
 
         return np.array(custom_answer_embeddings)
 
-    def find_top_n_unique_cosine_sim_bi_plus_cross_enc(self, query):
-        self.chat_util.timestamp_log(
-            "find_top_n_unique_cosine_sim_bi_plus_cross_enc - get_query_answers_embeddings_bi_encoder")
+    def find_top_n_unique_cosine_sim_bi_plus_cross_enc(self, query, user):
+        self.chat_util.timestamp_log("find_top_n_unique_cosine_sim_bi_plus_cross_enc - старт выполнения")
 
-        query_answers_embeddings_bi_encoder = self.get_query_answers_embeddings_bi_encoder(
-            self.bi_encoder_model.tokenizer,
-            query)
-        return self.find_top_n_unique_cosine_sim_bi_plus_cross_enc_aux(query_answers_embeddings_bi_encoder)
+        query = self.enrich_query_with_context(query, user)
+        query_answers_embeddings_bi_encoder = self.get_query_answers_embeddings_bi_encoder(query)
+        unique_top_answers = self.find_top_n_unique_cosine_sim_bi_plus_cross_enc_aux(
+            query_answers_embeddings_bi_encoder)
+
+        # добавить лучшую реплику к chat_msgs_history
+        self.chat_msgs_history.append(unique_top_answers[0])
+        return self.chat_msgs_history
 
     def find_top_n_unique_cosine_sim_bi_plus_cross_enc_aux(self, custom_answer_embeddings):
         self.chat_util.timestamp_log("find_top_n_unique_cosine_sim - get cosine similarities")
@@ -115,15 +140,21 @@ class ChatService:
                 break
 
         unique_top_question_answer_pairs = [self.target_char_questions_and_answers[idx] for idx in unique_top_indices]
+        unique_top_answers = [self.target_char_answers[idx] for idx in unique_top_indices]
 
-        self.chat_util.timestamp_log("find_top_n_unique_cosine_sim - done")
-        return unique_top_indices, unique_top_similarities, unique_top_question_answer_pairs
+        self.chat_util.timestamp_log("find_top_n_unique_cosine_sim - сделано")
+        print(unique_top_indices, unique_top_similarities, unique_top_question_answer_pairs)
+        return unique_top_answers
 
-    def find_top_n_unique_l2_bi_plus_cross_enc(self, query):
-        query_answers_embeddings_bi_encoder = self.get_query_answers_embeddings_bi_encoder(
-            self.bi_encoder_model.tokenizer,
-            query)
-        return self.find_top_n_unique_l2_bi_plus_cross_enc_aux(query_answers_embeddings_bi_encoder)
+    def find_top_n_unique_l2_bi_plus_cross_enc(self, query, user):
+        self.chat_util.timestamp_log("find_top_n_unique_l2_bi_plus_cross_enc - старт выполнения")
+        query = self.enrich_query_with_context(query, user)
+        query_answers_embeddings_bi_encoder = self.get_query_answers_embeddings_bi_encoder(query)
+        unique_top_answers = self.find_top_n_unique_l2_bi_plus_cross_enc_aux(query_answers_embeddings_bi_encoder)
+
+        # добавить лучшую реплику к chat_msgs_history
+        self.chat_msgs_history.append(unique_top_answers[0])
+        return self.chat_msgs_history
 
     def find_top_n_unique_l2_bi_plus_cross_enc_aux(self, custom_query_answer_embeddings):
         self.chat_util.timestamp_log("find_top_n_unique_l2 - get indices")
@@ -150,14 +181,21 @@ class ChatService:
                 top_n_unique.append((dist, idx))
 
         top_n_qa_pairs = [self.repository.target_char_questions_and_answers[idx] for _, idx in top_n_unique]
-        self.chat_util.timestamp_log("find_top_n_unique_l2 - done")
-        return top_n_qa_pairs, top_n_unique
+        unique_top_answers = [self.target_char_answers[idx] for _, idx in top_n_unique]
+        print(top_n_qa_pairs, top_n_unique)
 
-    def find_top_n_unique_l2_psa_bi_plus_cross_enc(self, query):
-        query_answers_embeddings_bi_encoder = self.get_query_answers_embeddings_bi_encoder(
-            self.bi_encoder_model.tokenizer,
-            query)
-        return self.find_top_n_unique_l2_psa_bi_plus_cross_enc_aux(query_answers_embeddings_bi_encoder)
+        self.chat_util.timestamp_log("find_top_n_unique_l2 - сделано")
+        return unique_top_answers
+
+    def find_top_n_unique_l2_psa_bi_plus_cross_enc(self, query, user):
+        self.chat_util.timestamp_log("find_top_n_unique_l2_psa_bi_plus_cross_enc - старт выполнения")
+        query = self.enrich_query_with_context(query, user)
+        query_answers_embeddings_bi_encoder = self.get_query_answers_embeddings_bi_encoder(query)
+        unique_top_answers = self.find_top_n_unique_l2_psa_bi_plus_cross_enc_aux(query_answers_embeddings_bi_encoder)
+
+        # добавить лучшую реплику к chat_msgs_history
+        self.chat_msgs_history.append(unique_top_answers[0])
+        return self.chat_msgs_history
 
     def find_top_n_unique_l2_psa_bi_plus_cross_enc_aux(self, custom_query_answer_embeddings):
         custom_query_answer_embeddings_reduced = self.apply_pca_psa(custom_query_answer_embeddings,
@@ -183,8 +221,11 @@ class ChatService:
                 unique_indices.add(idx)
                 top_n_unique.append((dist, idx))
         top_n_qa_pairs = [self.repository.target_char_questions_and_answers[idx] for _, idx in top_n_unique]
-        self.chat_util.timestamp_log("find_top_n_unique_l2_psa - done")
-        return top_n_qa_pairs, top_n_unique
+        unique_top_answers = [self.target_char_answers[idx] for _, idx in top_n_unique]
+        print(top_n_qa_pairs, top_n_unique)
+
+        self.chat_util.timestamp_log("find_top_n_unique_l2_psa - сделано")
+        return unique_top_answers
 
     def apply_pca_psa(self, embeddings, n_components=None):
         if n_components is None:
@@ -193,7 +234,10 @@ class ChatService:
         reduced_embeddings = pca.fit_transform(embeddings)
         return reduced_embeddings
 
-    def find_similar_answers_cross_enc(self, query):
+    def find_similar_answers_cross_enc(self, query, user):
+        self.chat_util.timestamp_log("find_similar_answers_cross_enc - старт выполнения")
+        query = self.enrich_query_with_context(query, user)
+
         self.cross_encoder_model = self.cross_encoder_model.to(self.constants.device)
 
         all_scores = []
@@ -215,6 +259,13 @@ class ChatService:
             torch.cuda.empty_cache()
 
         sorted_indices = np.argsort(all_scores)[::-1][:self.constants.CROSS_ENCODER_TOP_N]
-        top_answers = [(self.target_char_answers[idx], all_scores[idx]) for idx in sorted_indices]
+        unique_top_questions_answers_and_dist = [(self.target_char_questions_and_answers[idx], all_scores[idx]) for idx
+                                                 in sorted_indices]
+        unique_top_answers = [self.target_char_answers[idx] for idx in sorted_indices]
+        print(unique_top_questions_answers_and_dist)
 
-        return top_answers
+        # добавить лучшую реплику к chat_msgs_history
+        self.chat_msgs_history.append(unique_top_answers[0])
+
+        self.chat_util.timestamp_log("find_similar_answers_cross_enc - сделано")
+        return self.chat_msgs_history

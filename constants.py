@@ -51,6 +51,8 @@ class Constants:
     INVALID_QA_MARK = 0
     VALID_QA_MARK = 1
 
+    LAG_COUNT = 3
+
     # Столбцы для сортировки
     SIMPS_DF_SORT_BY_COLS = [EPISODE_ID_COL, NUMBER_COL]
 

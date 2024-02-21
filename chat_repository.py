@@ -35,9 +35,17 @@ class ChatRepository:
     def bi_encoder_model(self):
         return self._bi_encoder_model
 
+    @bi_encoder_model.setter
+    def bi_encoder_model(self, value):
+        self._bi_encoder_model = value
+
     @property
     def cross_encoder_model(self):
         return self._cross_encoder_model
+
+    @cross_encoder_model.setter
+    def cross_encoder_model(self, value):
+        self._cross_encoder_model = value
 
     @property
     def target_char_answers(self):

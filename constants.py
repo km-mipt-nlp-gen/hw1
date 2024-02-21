@@ -1,3 +1,9 @@
+import torch
+from multiprocessing import cpu_count
+import numpy as np
+import random
+
+
 class Constants:
 
     def __init__(self):
@@ -61,6 +67,7 @@ class Constants:
     BI_ENCODER_TOP_N = 8
     GPU_FAISS_INDEX = True
     CROSS_ENCODER_TOP_N = 8
+    CROSS_ENCODER_CHUNK_SIZE = 10
 
     PROC_COUNT = cpu_count()
     print(f"Число процессов для использования: {PROC_COUNT}")

@@ -79,8 +79,8 @@ class ChatService:
     def get_query_answers_embeddings_bi_encoder(self, query):
         self.bi_encoder_model = self.bi_encoder_model.to(self.constants.device)
         question_tokens = self.bi_encoder_model.bert_tokenizer(query, return_tensors="pt", padding='max_length',
-                                                          truncation=True,
-                                                          max_length=128).to(self.constants.device)
+                                                               truncation=True,
+                                                               max_length=128).to(self.constants.device)
         with torch.no_grad():
             question_embeds = self.bi_encoder_model.bert_model(input_ids=question_tokens['input_ids'],
                                                                attention_mask=question_tokens[
@@ -249,8 +249,8 @@ class ChatService:
         for i in range(0, len(self.target_char_answers), self.constants.CROSS_ENCODER_CHUNK_SIZE):
             chunk_answers = self.target_char_answers[i:i + self.constants.CROSS_ENCODER_CHUNK_SIZE]
             tokenized_pairs = self.cross_encoder_model.bert_tokenizer([query] * len(chunk_answers), chunk_answers,
-                                                                 padding=True, truncation=True, max_length=128,
-                                                                 return_tensors="pt")
+                                                                      padding=True, truncation=True, max_length=128,
+                                                                      return_tensors="pt")
             tokenized_pairs = {k: v.to(self.constants.device) for k, v in tokenized_pairs.items()}
 
             with torch.no_grad():
@@ -273,3 +273,6 @@ class ChatService:
 
         self.chat_util.debug("find_similar_answers_cross_enc - сделано")
         return self.chat_msg_history
+
+    def clear_chat_msg_history(self):
+        self.chat_msg_history([])

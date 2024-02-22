@@ -1,5 +1,6 @@
-import torch
+from joblib import dump, load
 import numpy as np
+import torch
 import faiss
 from sklearn.decomposition import PCA
 
@@ -14,16 +15,20 @@ class ChatServiceAccelerator:
         self.constants = constants
         self.chat_util = chat_util
 
-    def preprocess_answers_embeddings(self, answers):
+    def preprocess_answers_embeddings(self, answers, path=None):
         precomputed_embeddings = []
         for answer in answers:
             precomputed_embeddings.append(self.preprocess_answer_embedding(answer))
-        return np.array(precomputed_embeddings).squeeze(1)
+        precomputed_embeddings = np.array(precomputed_embeddings).squeeze(1)
+
+        if path:
+            dump(precomputed_embeddings, path)
+        return precomputed_embeddings
 
     def preprocess_answer_embedding(self, answer):
         self.ensure_model_on_device()
         answer_tokens = self.model.bert_tokenizer(answer, return_tensors="pt", padding='max_length', truncation=True,
-                                             max_length=128).to(self.constants.device)
+                                                  max_length=128).to(self.constants.device)
         with torch.no_grad():
             answer_embeds = self.model.bert_model(input_ids=answer_tokens['input_ids'],
                                                   attention_mask=answer_tokens['attention_mask']).last_hidden_state
@@ -36,7 +41,7 @@ class ChatServiceAccelerator:
         if current_device != target_device:
             self.model = self.model.to(target_device)
 
-    def preprocess_training_data_embeddings(self, questions_answers):
+    def preprocess_training_data_embeddings(self, questions_answers, path=None):
         self.ensure_model_on_device()
         training_data_embeddings = []
 
@@ -44,10 +49,12 @@ class ChatServiceAccelerator:
             question, answer = qa_pair[self.constants.PREMISE_UPDATED_COL], qa_pair[
                 self.constants.TARGET_CHAR_ANSWER_COL]
 
-            question_tokens = self.model.bert_tokenizer(question, return_tensors="pt", padding='max_length', truncation=True,
-                                                   max_length=128).to(self.constants.device)
-            answer_tokens = self.model.bert_tokenizer(answer, return_tensors="pt", padding='max_length', truncation=True,
-                                                 max_length=128).to(self.constants.device)
+            question_tokens = self.model.bert_tokenizer(question, return_tensors="pt", padding='max_length',
+                                                        truncation=True,
+                                                        max_length=128).to(self.constants.device)
+            answer_tokens = self.model.bert_tokenizer(answer, return_tensors="pt", padding='max_length',
+                                                      truncation=True,
+                                                      max_length=128).to(self.constants.device)
 
             with torch.no_grad():
                 question_embeds = self.model.bert_model(input_ids=question_tokens['input_ids'],
@@ -63,10 +70,13 @@ class ChatServiceAccelerator:
                                     torch.abs(pooled_question_embeds - pooled_answer_embeds)], dim=-1)
 
                 training_data_embeddings.append(embeds.cpu().numpy())
+        training_data_embeddings = np.array(training_data_embeddings).squeeze(1)
 
-        return np.array(training_data_embeddings).squeeze(1)
+        if path:
+            dump(training_data_embeddings, path)
+        return training_data_embeddings
 
-    def create_faiss_index(self, preprocessed_question_answer_embeddings, gpu_index=None):
+    def create_faiss_index(self, preprocessed_question_answer_embeddings, gpu_index=None, path=None):
         if gpu_index is None:
             gpu_index = self.constants.GPU_FAISS_INDEX
 
@@ -78,6 +88,9 @@ class ChatServiceAccelerator:
         else:
             index = faiss.IndexFlatL2(d)
         index.add(preprocessed_question_answer_embeddings.astype('float32'))
+
+        if path:
+            dump(index, path)
         return index
 
     def apply_pca_psa(self, embeddings, n_components=None):
@@ -88,7 +101,7 @@ class ChatServiceAccelerator:
         return reduced_embeddings
 
     def create_faiss_index_psa(self, preprocessed_question_answer_embeddings, gpu_index=None,
-                               n_components=None):
+                               n_components=None, path=None):
         if gpu_index is None:
             gpu_index = self.constants.GPU_FAISS_INDEX
 
@@ -104,4 +117,7 @@ class ChatServiceAccelerator:
         else:
             index = faiss.IndexFlatL2(d)
         index.add(reduced_embeddings.astype('float32'))
+
+        if path:
+            dump(index, path)
         return index

@@ -18,6 +18,7 @@ class Constants:
     THE_SIMPS_CSV_PATH = INPUT_DATA_DIR_PATH + 'script_lines.csv'
 
     TARGET_CHAR_PROCESSED_QA_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs.joblib'
+    TARGET_CHAR_ANSWERS_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_answers.joblib'
 
     # Целевой персонаж
     LISA_ID = 9

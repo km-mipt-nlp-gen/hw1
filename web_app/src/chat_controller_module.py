@@ -79,7 +79,7 @@ class ChatController:
         @self.app.route("/chat", methods=["GET"])
         def get_chat_msg_history():
             try:
-                response = self.chat_service.chat_msg_history()
+                response = self.chat_service.chat_msg_history
                 self.chat_util.debug(f'Тело ответа chat: {response}')
                 return jsonify(response=response), 200
             except Exception as e:

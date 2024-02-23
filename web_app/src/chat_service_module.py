@@ -217,7 +217,7 @@ class ChatService:
 
         unique_indices = set()
         top_n_unique = []
-        self.chat_util.timestamp_log_psa("find unique")
+        self.chat_util.debug("find unique")
         for dist, idx in combined_sorted:
             if len(top_n_unique) == self.constants.BI_ENCODER_TOP_N:
                 break

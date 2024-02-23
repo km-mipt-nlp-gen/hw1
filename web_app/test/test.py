@@ -1,6 +1,13 @@
 import pytest
+import sys
 
-from web_app.src.run_web_app_script import run_web_app
+WORKSPACE_PATH = '/content/drive/MyDrive/docs/keepForever/mipt/nlp/hw1_4sem/'
+GIT_HUB_PROJECT_PATH = WORKSPACE_PATH + 'code/'
+WEB_APP_POSTFIX = 'web_app/'
+WEB_APP_SRC_PATH = GIT_HUB_PROJECT_PATH + WEB_APP_POSTFIX + 'src/'
+sys.path.append(WEB_APP_SRC_PATH)
+
+from run_web_app_script import run_web_app
 
 
 @pytest.fixture(scope="session")

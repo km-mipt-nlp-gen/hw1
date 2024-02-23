@@ -13,17 +13,32 @@ class Constants:
     # Пути
     WORKSPACE_PATH = '/content/drive/MyDrive/docs/keepForever/mipt/nlp/hw1_4sem/'
     WORKSPACE_TMP = WORKSPACE_PATH + '/tmp/'
-    INPUT_DATA_DIR_PATH = WORKSPACE_PATH + 'input_data/'
-    PROCESSED_DATA_DIR_PATH = WORKSPACE_PATH + 'processed_data/'
+    GIT_HUB_PROJECT_PATH = WORKSPACE_PATH + 'code/'
+    ML_POSTFIX = 'ml/'
+    DATA_POSTFIX = 'data/'
+    RAW_POSTFIX = 'raw/'
+    PROCESSED_POSTFIX = 'processed/'
+    ASSET_POSTFIX = 'asset/'
+    EMBEDDING_POSTFIX = 'embedding/'
+    MODEL_POSTFIX = 'model/'
+    TOKENIZER_POSTFIX = 'tokenizer/'
+
+    INPUT_DATA_DIR_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + DATA_POSTFIX + RAW_POSTFIX
+    PROCESSED_DATA_DIR_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + DATA_POSTFIX + PROCESSED_POSTFIX
     THE_SIMPS_CSV_PATH = INPUT_DATA_DIR_PATH + 'script_lines.csv'
 
     TARGET_CHAR_PROCESSED_QA_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs.joblib'
     TARGET_CHAR_PROCESSED_ANSWERS_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_answers.joblib'
-    
-    TARGET_CHAR_QA_PAIRS_EMBEDDINGS_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs_embeddings.joblib'
-    TARGET_CHAR_ANSWERS_EMBEDDINGS_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_answers_embeddings.joblib'
-    TARGET_CHAR_QA_PAIRS_FAISS_INDEX_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs_faiss_index.joblib'
-    TARGET_CHAR_QA_PAIRS_FAISS_PSA_INDEX_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs_faiss_psa_index.joblib'
+
+    TARGET_CHAR_QA_PAIRS_EMBEDDINGS_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + ASSET_POSTFIX + EMBEDDING_POSTFIX + 'target_char_qa_pairs_embeddings.joblib'
+    TARGET_CHAR_ANSWERS_EMBEDDINGS_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + ASSET_POSTFIX + EMBEDDING_POSTFIX + 'target_char_answers_embeddings.joblib'
+    TARGET_CHAR_QA_PAIRS_FAISS_INDEX_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + ASSET_POSTFIX + EMBEDDING_POSTFIX + 'target_char_qa_pairs_faiss_index.joblib'
+    TARGET_CHAR_QA_PAIRS_FAISS_PSA_INDEX_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + ASSET_POSTFIX + EMBEDDING_POSTFIX + 'target_char_qa_pairs_faiss_psa_index.joblib'
+
+    BI_ENCODER_MODEL_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + ASSET_POSTFIX + MODEL_POSTFIX + 'bi_encoder_model.pth'
+    CROSS_ENCODER_MODEL_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + ASSET_POSTFIX + MODEL_POSTFIX + 'cross_encoder_model.pth'
+
+    TOKENIZER_PATH = GIT_HUB_PROJECT_PATH + ML_POSTFIX + ASSET_POSTFIX + TOKENIZER_POSTFIX + 'tokenizer.joblib'
 
     # Целевой персонаж
     LISA_ID = 9
@@ -107,5 +122,4 @@ class Constants:
 
     # запуск
     GIT_HUB_PROJECT_URL = 'https://github.com/km-mipt-nlp-gen'
-    GIT_HUB_PROJECT_PATH = WORKSPACE_PATH + 'code'
     IS_EMBEDDINGS_USED = True

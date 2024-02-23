@@ -5,7 +5,7 @@ import pytest
 
 @pytest.fixture(scope="session")
 def app():
-    import_web_app_module()
+    run_web_app = import_web_app_module()
     _app = run_web_app()
     _app.config['TESTING'] = True
     return _app
@@ -16,6 +16,7 @@ def import_web_app_module():
     assert web_app_src_path is not None, 'Путь web_app_src_path должен быть установлен.'
     sys.path.append(web_app_src_path)
     from run_web_app_script import run_web_app
+    return run_web_app
 
 
 @pytest.fixture(scope="session")

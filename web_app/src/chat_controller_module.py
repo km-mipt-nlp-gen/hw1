@@ -85,14 +85,18 @@ class ChatController:
         conf.get_default().auth_token = getpass.getpass()
 
     def run(self):
-        tunnels = ngrok.get_tunnels()
-        for tunnel in tunnels:
-            ngrok.disconnect(tunnel.public_url)
+        if self.app.config.get("TESTING"):
+            print('Запуск в режиме тестирования.')
+            self.constants.logger.debug('Запуск в режиме тестирования.')
+        else:
+            tunnels = ngrok.get_tunnels()
+            for tunnel in tunnels:
+                ngrok.disconnect(tunnel.public_url)
 
-        ngrok.kill()
-        public_url = ngrok.connect(5000).public_url
-        print(" * ngrok tunnel \"{}\" -> \"http://127.0.0.1:{}/\"".format(public_url, 5000))
-        self.app.config["BASE_URL"] = public_url
+            ngrok.kill()
+            public_url = ngrok.connect(5000).public_url
+            print(" * ngrok tunnel \"{}\" -> \"http://127.0.0.1:{}/\"".format(public_url, 5000))
+            self.app.config["BASE_URL"] = public_url
 
-        # запустить в отдельном потоке
-        threading.Thread(target=self.app.run, kwargs={"use_reloader": False}).start()
+            # запустить в отдельном потоке
+            threading.Thread(target=self.app.run, kwargs={"use_reloader": False}).start()

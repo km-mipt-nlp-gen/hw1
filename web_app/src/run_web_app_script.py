@@ -50,7 +50,7 @@ def run_web_app():
 
 
 def initialize_models(constants, chat_util):
-    sys.path.append(constants.WEB_APP_SRC_PATH)
+    sys.path.append(constants.ML_SRC_TRAIN_PATH)
     from models_zoo_module import SiameseBiEncoder, CrossEncoder
 
     bi_encoder_model = SiameseBiEncoder(constants, chat_util).to(constants.DEVICE)

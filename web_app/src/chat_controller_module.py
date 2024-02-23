@@ -5,9 +5,10 @@ import getpass
 
 
 class ChatController:
-    def __init__(self, chat_service, constants, chat_util):
+    def __init__(self, chat_service, constants, chat_util, test_mode):
         self.chat_service = chat_service
         self.app = Flask(__name__)
+        self.app.config['TESTING'] = test_mode
         self.configure_routes()
         self.constants = constants
         self.chat_util = chat_util

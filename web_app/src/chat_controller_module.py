@@ -20,6 +20,7 @@ class ChatController:
                 query = request.json.get("query", "")
                 user = request.json.get("user", "default_user")
                 response = self.chat_service.find_top_n_unique_cosine_sim_bi_plus_cross_enc(query, user)
+                self.chat_util.debug(f'Тело ответа top_cos_sim_bi_cr: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
                 return jsonify(self.get_error(

@@ -106,4 +106,6 @@ class Constants:
     pd.set_option('display.max_rows', None)  # Полное отобрадение рядов (все)
 
     # запуск
+    GIT_HUB_PROJECT_URL = 'https://github.com/km-mipt-nlp-gen'
+    GIT_HUB_PROJECT_PATH = WORKSPACE_PATH + 'code'
     IS_EMBEDDINGS_USED = True

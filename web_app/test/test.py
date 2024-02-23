@@ -26,13 +26,12 @@ def client(app):
 
 @pytest.fixture(autouse=True)
 def clear_chat_history_before_and_after_tests(client):
-    print("Before clearing:", client.get("/chat").json)
     client.delete("/clear")
     yield
-    print("Before clearing:", client.get("/chat").json)
     client.delete("/clear")
 
 
+@pytest.mark.run_label
 @pytest.mark.parametrize("endpoint,expected_length", [
     ("/top_cos_sim_bi_cr", 6),
     ("/top_l2_bi_cr", 6),
@@ -61,7 +60,6 @@ def test_that_expected_length_when_find_top(client, endpoint, expected_length):
     assert len(response.json['response']) == expected_length
 
 
-@pytest.mark.run_label
 @pytest.mark.parametrize("endpoint", [
     ("/top_cos_sim_bi_cr"),
     ("/top_l2_bi_cr"),

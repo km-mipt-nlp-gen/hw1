@@ -1,6 +1,6 @@
 import pytest
 
-from web_app.src.run_web_app import run_web_app
+from web_app.src.run_web_app_script import run_web_app
 
 
 @pytest.fixture(scope="session")

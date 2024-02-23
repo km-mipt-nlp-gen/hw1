@@ -2,12 +2,12 @@ import logging
 from joblib import load
 import torch
 import SiameseBiEncoder, CrossEncoder  # TODO
-from chat_constants import Constants
-from chat_util import ChatUtil
-from chat_service import ChatService
-from chat_repository import ChatRepository
-from chat_service_accelerator import ChatServiceAccelerator
-from chat_controller import ChatController
+from chat_constants_module import Constants
+from chat_util_module import ChatUtil
+from chat_service_module import ChatService
+from chat_repository_module import ChatRepository
+from chat_service_accelerator_module import ChatServiceAccelerator
+from chat_controller_module import ChatController
 
 
 def run_web_app():

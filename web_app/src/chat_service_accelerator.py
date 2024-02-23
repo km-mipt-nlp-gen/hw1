@@ -100,7 +100,7 @@ class ChatServiceAccelerator:
         reduced_embeddings = pca.fit_transform(embeddings)
         return reduced_embeddings
 
-    def create_faiss_index_psa(self, preprocessed_question_answer_embeddings, gpu_index=None,
+    def create_faiss_psa_index(self, preprocessed_question_answer_embeddings, gpu_index=None,
                                n_components=None, path=None):
         if gpu_index is None:
             gpu_index = self.constants.GPU_FAISS_INDEX

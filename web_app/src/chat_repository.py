@@ -16,7 +16,7 @@ class ChatRepository:
                 target_char_answers)
             self._preprocessed_questions_answers_embeddings_faiss_index = chat_service_accelerator.create_faiss_index(
                 self._preprocessed_questions_answers_embeddings)
-            self._preprocessed_questions_answers_embeddings_faiss_psa_index = chat_service_accelerator.create_faiss_index_psa(
+            self._preprocessed_questions_answers_embeddings_faiss_psa_index = chat_service_accelerator.create_faiss_psa_index(
                 self._preprocessed_questions_answers_embeddings)
             self.chat_util.debug('ChatServiceAccelerator успешно предобработал эмбеддинги для кеширования')
         elif (preprocessed_questions_answers_embeddings_path

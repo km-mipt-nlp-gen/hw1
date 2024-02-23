@@ -18,7 +18,12 @@ class Constants:
     THE_SIMPS_CSV_PATH = INPUT_DATA_DIR_PATH + 'script_lines.csv'
 
     TARGET_CHAR_PROCESSED_QA_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs.joblib'
-    TARGET_CHAR_ANSWERS_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_answers.joblib'
+    TARGET_CHAR_PROCESSED_ANSWERS_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_answers.joblib'
+    
+    TARGET_CHAR_QA_PAIRS_EMBEDDINGS_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs_embeddings.joblib'
+    TARGET_CHAR_ANSWERS_EMBEDDINGS_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_answers_embeddings.joblib'
+    TARGET_CHAR_QA_PAIRS_FAISS_INDEX_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs_faiss_index.joblib'
+    TARGET_CHAR_QA_PAIRS_FAISS_PSA_INDEX_PATH = PROCESSED_DATA_DIR_PATH + 'target_char_qa_pairs_faiss_psa_index.joblib'
 
     # Целевой персонаж
     LISA_ID = 9
@@ -99,3 +104,6 @@ class Constants:
     pd.set_option('display.max_colwidth', None)  # Полное отображение содержимого столбцов
     pd.set_option('display.max_columns', None)  # Полное отображение столбцов (все)
     pd.set_option('display.max_rows', None)  # Полное отобрадение рядов (все)
+
+    # запуск
+    IS_EMBEDDINGS_USED = True

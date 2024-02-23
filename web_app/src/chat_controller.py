@@ -65,6 +65,14 @@ class ChatController:
             except Exception as e:
                 return jsonify(self.get_error("Ошибка очистки чата", e)), 500
 
+        @self.app.route("/chat", methods=["GET"])
+        def get_chat_msg_history():
+            try:
+                chat_msg_history = self.chat_service.chat_msg_history()
+                return jsonify(response=chat_msg_history), 200
+            except Exception as e:
+                return jsonify(self.get_error("Ошибка загрузки чата", e)), 500
+
     @staticmethod
     def get_error(message, exception):
         return {

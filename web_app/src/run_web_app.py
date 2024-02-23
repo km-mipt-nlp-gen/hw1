@@ -10,7 +10,7 @@ from chat_service_accelerator import ChatServiceAccelerator
 from chat_controller import ChatController
 
 
-def initialize_and_run_application():
+def run_web_app():
     constants = Constants()
 
     bi_encoder_model = SiameseBiEncoder().to(constants.device)
@@ -22,19 +22,30 @@ def initialize_and_run_application():
     cross_encoder_model.load_state_dict(torch.load(cross_encoder_path, map_location=constants.device))
 
     target_char_questions_and_answers = load(constants.TARGET_CHAR_PROCESSED_QA_PATH)
-    target_char_answers = load(constants.TARGET_CHAR_ANSWERS_PATH)
+    target_char_answers = load(constants.TARGET_CHAR_PROCESSED_ANSWERS_PATH)
 
     chat_util = ChatUtil(logging.DEBUG, constants)
 
-    chat_service_accelerator = ChatServiceAccelerator(
-        bi_encoder_model, cross_encoder_model, target_char_questions_and_answers, target_char_answers,
-        constants, chat_util
-    )
-
     chat_msg_history = []
-    chat_repository = ChatRepository(
-        chat_msg_history, target_char_questions_and_answers, target_char_answers,
-        bi_encoder_model, cross_encoder_model, chat_service_accelerator, chat_util)
+
+    chat_repository = None
+
+    if constants.IS_EMBEDDINGS_USED:
+        chat_repository = ChatRepository(
+            chat_msg_history, target_char_questions_and_answers, target_char_answers,
+            bi_encoder_model, cross_encoder_model, None, chat_util,
+            constants.TARGET_CHAR_QA_PAIRS_EMBEDDINGS_PATH,
+            constants.TARGET_CHAR_ANSWERS_EMBEDDINGS_PATH,
+            constants.TARGET_CHAR_QA_PAIRS_FAISS_INDEX_PATH,
+            constants.TARGET_CHAR_QA_PAIRS_FAISS_PSA_INDEX_PATH
+        )
+    else:
+        chat_service_accelerator = ChatServiceAccelerator(
+            bi_encoder_model, cross_encoder_model, target_char_questions_and_answers, target_char_answers,
+            constants, chat_util)
+        chat_repository = ChatRepository(
+            chat_msg_history, target_char_questions_and_answers, target_char_answers,
+            bi_encoder_model, cross_encoder_model, chat_service_accelerator, chat_util)
 
     chat_service = ChatService(chat_msg_history, chat_repository, constants, chat_util)
 

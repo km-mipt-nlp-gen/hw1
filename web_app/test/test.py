@@ -4,7 +4,7 @@ from web_app.src.run_web_app_script import run_web_app
 
 
 @pytest.fixture(scope="session")
-def app(app):
+def app():
     _app = run_web_app()
     _app.config['TESTING'] = True
     return _app

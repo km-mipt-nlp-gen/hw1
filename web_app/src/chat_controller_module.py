@@ -23,9 +23,9 @@ class ChatController:
                 self.chat_util.debug(f'Тело ответа top_cos_sim_bi_cr: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
-                return jsonify(self.get_error(
-                    "Ошибка получения лучшего ответа (метрика cosine sim, архитектура bi-encoder cross-encoder)",
-                    e)), 500
+                error_msg = "Ошибка получения лучшего ответа (метрика cosine sim, архитектура bi-encoder cross-encoder)"
+                self.chat_util.error(error_msg)
+                return jsonify(self.get_error(error_msg, e)), 500
 
         @self.app.route("/top_l2_bi_cr", methods=["POST"])
         def find_top_n_unique_l2_bi_plus_cross_enc():
@@ -36,9 +36,9 @@ class ChatController:
                 self.chat_util.debug(f'Тело ответа top_l2_bi_cr: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
-                return jsonify(
-                    self.get_error("Ошибка получения лучшего ответа (метрика l2, архитектура bi-encoder cross-encoder)",
-                                   e)), 500
+                error_msg = "Ошибка получения лучшего ответа (метрика l2, архитектура bi-encoder cross-encoder)"
+                self.chat_util.error(error_msg)
+                return jsonify(self.get_error(error_msg, e)), 500
 
         @self.app.route("/top_l2_psa_bi_cr", methods=["POST"])
         def find_top_n_unique_l2_psa_bi_plus_cross_enc():
@@ -49,8 +49,9 @@ class ChatController:
                 self.chat_util.debug(f'Тело ответа top_l2_psa_bi_cr: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
-                return jsonify(self.get_error(
-                    "Ошибка получения лучшего ответа (метрика l2 psa, архитектура bi-encoder cross-encoder)", e)), 500
+                error_msg = "Ошибка получения лучшего ответа (метрика l2 psa, архитектура bi-encoder cross-encoder)"
+                self.chat_util.error(error_msg)
+                return jsonify(self.get_error(error_msg, e)), 500
 
         @self.app.route("/top_cr", methods=["POST"])
         def find_top_n_unique_answers_cross_enc():
@@ -61,7 +62,9 @@ class ChatController:
                 self.chat_util.debug(f'Тело ответа top_cr: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
-                return jsonify(self.get_error("Ошибка получения лучшего ответа (архитектура cross-encoder)", e)), 500
+                error_msg = "Ошибка получения лучшего ответа (архитектура cross-encoder)"
+                self.chat_util.error(error_msg)
+                return jsonify(self.get_error(error_msg, e)), 500
 
         @self.app.route("/clear", methods=["DELETE"])
         def clear_chat_msg_history():
@@ -69,7 +72,9 @@ class ChatController:
                 self.chat_service.clear_chat_msg_history()
                 return jsonify({"сообщение": "Чат очищен"}), 200
             except Exception as e:
-                return jsonify(self.get_error("Ошибка очистки чата", e)), 500
+                error_msg = "Ошибка очистки чата"
+                self.chat_util.error(error_msg)
+                return jsonify(self.get_error(error_msg, e)), 500
 
         @self.app.route("/chat", methods=["GET"])
         def get_chat_msg_history():
@@ -78,7 +83,9 @@ class ChatController:
                 self.chat_util.debug(f'Тело ответа chat: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
-                return jsonify(self.get_error("Ошибка загрузки чата", e)), 500
+                error_msg = "Ошибка загрузки чата"
+                self.chat_util.error(error_msg)
+                return jsonify(self.get_error(error_msg, e)), 500
 
     @staticmethod
     def get_error(message, exception):

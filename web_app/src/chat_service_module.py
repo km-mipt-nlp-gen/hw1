@@ -275,4 +275,4 @@ class ChatService:
         return self.chat_msg_history
 
     def clear_chat_msg_history(self):
-        self.chat_msg_history([])
+        self.chat_msg_history = []

@@ -1,4 +1,5 @@
 import sys
+import traceback
 import logging
 import torch
 
@@ -37,3 +38,7 @@ class ChatUtil:
         if not message:
             message = ""
         self.logger.debug(message)
+
+    def error(self, message):
+        traceback_str = traceback.format_exc()  # Get the traceback as a string
+        self.logger.error(f'{message}: {traceback_str}')

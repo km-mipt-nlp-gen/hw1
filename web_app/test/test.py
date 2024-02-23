@@ -43,6 +43,8 @@ def test_that_expected_length_when_find_top_3_times(client, endpoint, expected_l
     response = None
     for _ in range(3):
         response = client.post(endpoint, json={"query": "test", "user": "test_user"})
+
+    assert response.status_code == 200
     assert len(response.json['response']) == expected_length
 
 
@@ -55,6 +57,8 @@ def test_that_expected_length_when_find_top_3_times(client, endpoint, expected_l
 ])
 def test_that_expected_length_when_find_top(client, endpoint, expected_length):
     response = client.post(endpoint, json={"query": "test", "user": "test_user"})
+
+    assert response.status_code == 200
     assert len(response.json['response']) == expected_length
 
 
@@ -68,6 +72,8 @@ def test_that_clear_chat_when_find_top_then_clear(client, endpoint):
     client.post(endpoint, json={"query": "test", "user": "test_user"})
     client.delete('/clear')
     response = client.get('/chat')
+
+    assert response.status_code == 200
     assert len(response.json['response']) == 0
 
 # TODO можно добавить новую функциональность в будущем

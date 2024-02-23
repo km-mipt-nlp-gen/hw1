@@ -33,6 +33,7 @@ class ChatController:
                 query = request.json.get("query", "")
                 user = request.json.get("user", "default_user")
                 response = self.chat_service.find_top_n_unique_l2_bi_plus_cross_enc(query, user)
+                self.chat_util.debug(f'Тело ответа top_l2_bi_cr: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
                 return jsonify(
@@ -45,6 +46,7 @@ class ChatController:
                 query = request.json.get("query", "")
                 user = request.json.get("user", "default_user")
                 response = self.chat_service.find_top_n_unique_l2_psa_bi_plus_cross_enc(query, user)
+                self.chat_util.debug(f'Тело ответа top_l2_psa_bi_cr: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
                 return jsonify(self.get_error(
@@ -56,6 +58,7 @@ class ChatController:
                 query = request.json.get("query", "")
                 user = request.json.get("user", "default_user")
                 response = self.chat_service.find_top_n_unique_answers_cross_enc(query, user)
+                self.chat_util.debug(f'Тело ответа top_cr: {response}')
                 return jsonify(response=response), 200
             except Exception as e:
                 return jsonify(self.get_error("Ошибка получения лучшего ответа (архитектура cross-encoder)", e)), 500
@@ -71,8 +74,9 @@ class ChatController:
         @self.app.route("/chat", methods=["GET"])
         def get_chat_msg_history():
             try:
-                chat_msg_history = self.chat_service.chat_msg_history()
-                return jsonify(response=chat_msg_history), 200
+                response = self.chat_service.chat_msg_history()
+                self.chat_util.debug(f'Тело ответа chat: {response}')
+                return jsonify(response=response), 200
             except Exception as e:
                 return jsonify(self.get_error("Ошибка загрузки чата", e)), 500
 

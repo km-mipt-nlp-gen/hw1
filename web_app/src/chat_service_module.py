@@ -77,10 +77,10 @@ class ChatService:
         return updated_query
 
     def get_query_answers_embeddings_bi_encoder(self, query):
-        self.bi_encoder_model = self.bi_encoder_model.to(self.constants.device)
+        self.bi_encoder_model = self.bi_encoder_model.to(self.constants.DEVICE)
         question_tokens = self.bi_encoder_model.bert_tokenizer(query, return_tensors="pt", padding='max_length',
                                                                truncation=True,
-                                                               max_length=128).to(self.constants.device)
+                                                               max_length=128).to(self.constants.DEVICE)
         with torch.no_grad():
             question_embeds = self.bi_encoder_model.bert_model(input_ids=question_tokens['input_ids'],
                                                                attention_mask=question_tokens[
@@ -242,7 +242,7 @@ class ChatService:
         self.chat_util.debug("find_similar_answers_cross_enc - старт выполнения")
         query = self.enrich_query_with_context(query, user)
 
-        self.cross_encoder_model = self.cross_encoder_model.to(self.constants.device)
+        self.cross_encoder_model = self.cross_encoder_model.to(self.constants.DEVICE)
 
         all_scores = []
 
@@ -251,7 +251,7 @@ class ChatService:
             tokenized_pairs = self.cross_encoder_model.bert_tokenizer([query] * len(chunk_answers), chunk_answers,
                                                                       padding=True, truncation=True, max_length=128,
                                                                       return_tensors="pt")
-            tokenized_pairs = {k: v.to(self.constants.device) for k, v in tokenized_pairs.items()}
+            tokenized_pairs = {k: v.to(self.constants.DEVICE) for k, v in tokenized_pairs.items()}
 
             with torch.no_grad():
                 logits = self.cross_encoder_model(**tokenized_pairs).squeeze(-1)

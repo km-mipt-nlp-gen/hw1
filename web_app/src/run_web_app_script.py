@@ -13,13 +13,13 @@ from chat_controller_module import ChatController
 def run_web_app():
     constants = Constants()
 
-    bi_encoder_model = SiameseBiEncoder().to(constants.device)
+    bi_encoder_model = SiameseBiEncoder().to(constants.DEVICE)
     bi_encoder_path = '/content/drive/MyDrive/docs/keepForever/mipt/nlp/hw1_4sem/tmp/models/SiameseBiEncoder_20240218_005050.pth'  # TODO
-    bi_encoder_model.load_state_dict(torch.load(bi_encoder_path, map_location=constants.device))
+    bi_encoder_model.load_state_dict(torch.load(bi_encoder_path, map_location=constants.DEVICE))
 
-    cross_encoder_model = CrossEncoder().to(constants.device)
+    cross_encoder_model = CrossEncoder().to(constants.DEVICE)
     cross_encoder_path = '/content/drive/MyDrive/docs/keepForever/mipt/nlp/hw1_4sem/tmp/models/CrossEncoder_20240221_165603.pth'  # TODO
-    cross_encoder_model.load_state_dict(torch.load(cross_encoder_path, map_location=constants.device))
+    cross_encoder_model.load_state_dict(torch.load(cross_encoder_path, map_location=constants.DEVICE))
 
     target_char_questions_and_answers = load(constants.TARGET_CHAR_PROCESSED_QA_PATH)
     target_char_answers = load(constants.TARGET_CHAR_PROCESSED_ANSWERS_PATH)

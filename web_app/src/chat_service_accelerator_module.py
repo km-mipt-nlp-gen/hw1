@@ -28,7 +28,7 @@ class ChatServiceAccelerator:
     def preprocess_answer_embedding(self, answer):
         self.ensure_model_on_device()
         answer_tokens = self.model.bert_tokenizer(answer, return_tensors="pt", padding='max_length', truncation=True,
-                                                  max_length=128).to(self.constants.device)
+                                                  max_length=128).to(self.constants.DEVICE)
         with torch.no_grad():
             answer_embeds = self.model.bert_model(input_ids=answer_tokens['input_ids'],
                                                   attention_mask=answer_tokens['attention_mask']).last_hidden_state
@@ -37,7 +37,7 @@ class ChatServiceAccelerator:
 
     def ensure_model_on_device(self):
         current_device = next(self.model.parameters()).device
-        target_device = self.constants.device
+        target_device = self.constants.DEVICE
         if current_device != target_device:
             self.model = self.model.to(target_device)
 
@@ -51,10 +51,10 @@ class ChatServiceAccelerator:
 
             question_tokens = self.model.bert_tokenizer(question, return_tensors="pt", padding='max_length',
                                                         truncation=True,
-                                                        max_length=128).to(self.constants.device)
+                                                        max_length=128).to(self.constants.DEVICE)
             answer_tokens = self.model.bert_tokenizer(answer, return_tensors="pt", padding='max_length',
                                                       truncation=True,
-                                                      max_length=128).to(self.constants.device)
+                                                      max_length=128).to(self.constants.DEVICE)
 
             with torch.no_grad():
                 question_embeds = self.model.bert_model(input_ids=question_tokens['input_ids'],

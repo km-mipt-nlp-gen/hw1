@@ -84,10 +84,22 @@ class Constants:
 
     ''' Прочие константы '''
 
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+    # воспроизводимость
+    SEED = 14
+    random.seed(SEED)
+    np.random.seed(SEED)
+
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed_all(SEED)
+
+    torch.backends.cudnn.deterministic = True  # для воспроизводимости
+    torch.backends.cudnn.benchmark = False
+
+    TOKENIZER = load(TOKENIZER_PATH)
 
     # тренировка
-    SEED = 14
     EPOCHS_OVERFIT_COUNT = 1
     BATCH_SIZE = 16
     MAX_LENGTH = 128
@@ -101,20 +113,6 @@ class Constants:
 
     PROC_COUNT = cpu_count()
     print(f"Число процессов для использования: {PROC_COUNT}")
-
-    # воспроизводимость
-    seed = SEED
-
-    random.seed(seed)
-    np.random.seed(seed)
-
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-
-    torch.backends.cudnn.deterministic = True  # для воспроизводимости
-    torch.backends.cudnn.benchmark = False
-
-    TOKENIZER = load(TOKENIZER_PATH)
 
     # логирование
     LOG_FORMAT = 'time="%(asctime)s" level="%(levelname)s" module="%(filename)s" function="%(funcName)s" line=%(lineno)d msg="%(message)s"'

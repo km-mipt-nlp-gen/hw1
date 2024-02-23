@@ -85,14 +85,14 @@ class ChatController:
     def init_conf(self):
         if self.app.config.get("TESTING"):
             print('Запуск в режиме тестирования, пропуск авторизации для создания туннеля.')
-            self.constants.logger.debug('Запуск в режиме тестирования, пропуск авторизации для создания туннеля.')
+            self.chat_util.logger.debug('Запуск в режиме тестирования, пропуск авторизации для создания туннеля.')
         else:
             conf.get_default().auth_token = getpass.getpass()
 
     def run(self):
         if self.app.config.get("TESTING"):
             print('Запуск в режиме тестирования, пропуск создания туннеля с облачным сервисом.')
-            self.constants.logger.debug('Запуск в режиме тестирования, пропуск создания туннеля с облачным сервисом.')
+            self.chat_util.logger.debug('Запуск в режиме тестирования, пропуск создания туннеля с облачным сервисом.')
         else:
             tunnels = ngrok.get_tunnels()
             for tunnel in tunnels:

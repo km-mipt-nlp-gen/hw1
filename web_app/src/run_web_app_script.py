@@ -3,7 +3,7 @@ import logging
 from joblib import load
 import torch
 
-from chat_constants_module import Constants
+from constants_module import Constants
 from chat_util_module import ChatUtil
 from chat_service_module import ChatService
 from chat_repository_module import ChatRepository

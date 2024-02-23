@@ -2,7 +2,7 @@ import logging
 from joblib import load
 import torch
 import SiameseBiEncoder, CrossEncoder  # TODO
-from constants import Constants
+from chat_constants import Constants
 from chat_util import ChatUtil
 from chat_service import ChatService
 from chat_repository import ChatRepository

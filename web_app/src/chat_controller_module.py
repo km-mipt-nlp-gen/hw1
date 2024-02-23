@@ -105,3 +105,5 @@ class ChatController:
 
             # запустить в отдельном потоке
             threading.Thread(target=self.app.run, kwargs={"use_reloader": False}).start()
+
+        return self.app

@@ -46,7 +46,7 @@ def run_web_app(test_mode=False):
     chat_controller = ChatController(chat_service, constants, chat_util, test_mode)
     chat_controller.init_conf()
 
-    chat_controller.run()
+    return chat_controller.run()
 
 
 def initialize_models(constants, chat_util):

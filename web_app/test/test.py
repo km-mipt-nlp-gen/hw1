@@ -6,8 +6,8 @@ import pytest
 @pytest.fixture(scope="session")
 def app():
     run_web_app = import_web_app_module()
-    _app = run_web_app()
     _app.config['TESTING'] = True
+    _app = run_web_app()
     return _app
 
 

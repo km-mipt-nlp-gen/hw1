@@ -1,5 +1,7 @@
 import random
 from multiprocessing import cpu_count
+
+from joblib import load
 import numpy as np
 import pandas as pd
 import torch
@@ -111,6 +113,8 @@ class Constants:
 
     torch.backends.cudnn.deterministic = True  # для воспроизводимости
     torch.backends.cudnn.benchmark = False
+
+    TOKENIZER = load(TOKENIZER_PATH)
 
     # логирование
     LOG_FORMAT = 'time="%(asctime)s" level="%(levelname)s" module="%(filename)s" function="%(funcName)s" line=%(lineno)d msg="%(message)s"'

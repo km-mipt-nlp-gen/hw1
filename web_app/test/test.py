@@ -44,6 +44,7 @@ def test_that_expected_length_when_find_top_3_times(client, endpoint, expected_l
     assert len(response.json['response']) == expected_length
 
 
+@pytest.mark.run_label
 @pytest.mark.parametrize("endpoint,expected_length", [
     ("/top_cos_sim_bi_cr", 1),
     ("/top_l2_bi_cr", 1),

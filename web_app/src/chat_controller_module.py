@@ -5,11 +5,12 @@ import getpass
 
 
 class ChatController:
-    def __init__(self, chat_service, constants):
+    def __init__(self, chat_service, constants, chat_util):
         self.chat_service = chat_service
         self.app = Flask(__name__)
         self.configure_routes()
         self.constants = constants
+        self.chat_util = chat_util
 
     def configure_routes(self):
         @self.app.route("/top_cos_sim_bi_cr", methods=["POST"])

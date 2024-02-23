@@ -19,6 +19,7 @@ class Constants:
     WEB_APP_POSTFIX = 'web_app/'
     WEB_APP_SRC_PATH = GIT_HUB_PROJECT_PATH + WEB_APP_POSTFIX + 'src/'
     WEB_APP_TEST_PATH = GIT_HUB_PROJECT_PATH + WEB_APP_POSTFIX + 'test/'
+    TEST_SCRIPT_PATH = WEB_APP_TEST_PATH + 'test.py'
 
     ML_POSTFIX = 'ml/'
     DATA_POSTFIX = 'data/'

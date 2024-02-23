@@ -1,20 +1,21 @@
-import pytest
 import sys
-
-WORKSPACE_PATH = '/content/drive/MyDrive/docs/keepForever/mipt/nlp/hw1_4sem/'
-GIT_HUB_PROJECT_PATH = WORKSPACE_PATH + 'code/'
-WEB_APP_POSTFIX = 'web_app/'
-WEB_APP_SRC_PATH = GIT_HUB_PROJECT_PATH + WEB_APP_POSTFIX + 'src/'
-sys.path.append(WEB_APP_SRC_PATH)
-
-from run_web_app_script import run_web_app
+import os
+import pytest
 
 
 @pytest.fixture(scope="session")
 def app():
+    import_web_app_module()
     _app = run_web_app()
     _app.config['TESTING'] = True
     return _app
+
+
+def import_web_app_module():
+    web_app_src_path = os.getenv('WEB_APP_SRC_PATH')
+    assert web_app_src_path is not None, 'Путь web_app_src_path должен быть установлен.'
+    sys.path.append(web_app_src_path)
+    from run_web_app_script import run_web_app
 
 
 @pytest.fixture(scope="session")

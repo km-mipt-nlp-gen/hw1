@@ -39,6 +39,11 @@ class ChatUtil:
             message = ""
         self.logger.debug(message)
 
+    def info(self, message):
+        if not message:
+            message = ""
+        self.logger.info(message)
+
     def error(self, message):
         traceback_str = traceback.format_exc()  # Get the traceback as a string
         self.logger.error(f'{message}: {traceback_str}')

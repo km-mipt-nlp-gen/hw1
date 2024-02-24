@@ -1,5 +1,6 @@
 from models_zoo_module import SiameseBiEncoder
 from typing import Callable
+import plotly.graph_objects as go
 
 import numpy as np
 
@@ -105,6 +106,10 @@ class SiameseBiEncoderTrainingPipeline:
             self.chat_util.info(
                 f"Epoch {epoch}: Mean train loss (per batch) = {mean_train_batch_loss:.4f}, Last Validation Loss (per all val dataset) = {mean_val_losses_per_val_interval[-1]:.4f}")
 
+        self.do_visualization(all_train_batch_losses, all_mean_val_losses_per_val_interval, val_interval)
+
+        return self.bi_encoder_model
+
     def get_train_step_fn(self, optimizer: torch.optim.Optimizer,
                           scheduler: torch.optim.lr_scheduler.LambdaLR, loss_fn: torch.nn.CrossEntropyLoss
                           ) -> Callable[[torch.tensor, torch.tensor], float]:
@@ -153,5 +158,31 @@ class SiameseBiEncoderTrainingPipeline:
 
         return np.mean(train_batch_losses), train_batch_losses, mean_val_losses_per_val_interval
 
-    def do_visualization(self):
-        pass
+    def do_visualization(self, all_train_batch_losses, all_mean_val_losses_per_val_interval, validation_interval):
+        all_train_batch_losses = all_train_batch_losses
+        all_mean_val_losses_per_val_interval = all_mean_val_losses_per_val_interval
+
+        trace1 = go.Scatter(y=all_train_batch_losses, mode='lines', name='Train batch losses')
+        trace2 = go.Scatter(y=all_mean_val_losses_per_val_interval, mode='lines', name='Validation mean loss',
+                            xaxis='x2',
+                            yaxis='y2')
+
+        layout = go.Layout(
+            xaxis=dict(domain=[0, 1]),
+            yaxis=dict(title='Train Loss'),
+            xaxis2=dict(domain=[0, 1], anchor='y2'),
+            yaxis2=dict(title='Validation Loss', overlaying='y', side='right'),
+            title=f"Train(per batch) and Validation (per validation interval equal to {validation_interval} batches) Losses"
+        )
+
+        fig = go.Figure(data=[trace1, trace2], layout=layout)
+
+        fig.update_layout(
+            xaxis_title="Batch(for Train)/Validation interval(for Validation)",
+            yaxis_title="Loss",
+            legend_title="Loss Type",
+            height=600,
+            width=800,
+        )
+
+        fig.show()

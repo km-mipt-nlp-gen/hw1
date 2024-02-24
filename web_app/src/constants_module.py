@@ -102,6 +102,7 @@ class Constants:
     ''' Прочие константы '''
 
     DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
+    print(f'DEVICE: {DEVICE}')
 
     # воспроизводимость
     SEED = 14

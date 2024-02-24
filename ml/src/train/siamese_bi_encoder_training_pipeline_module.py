@@ -105,7 +105,7 @@ class SiameseBiEncoderTrainingPipeline:
 
         self.do_visualization(all_train_batch_losses, all_mean_val_losses_per_val_interval, val_interval)
 
-        return self.bi_encoder_model
+        return self.bi_encoder_model, all_train_batch_losses, all_mean_val_losses_per_val_interval
 
     def get_train_step_fn(self, optimizer: torch.optim.Optimizer,
                           scheduler: torch.optim.lr_scheduler.LambdaLR, loss_fn: torch.nn.CrossEntropyLoss

@@ -156,13 +156,20 @@ class SiameseBiEncoderTrainingPipeline:
         return np.mean(train_batch_losses), train_batch_losses, mean_val_losses_per_val_interval
 
     def do_visualization(self, all_train_batch_losses, all_mean_val_losses_per_val_interval, validation_interval,
-                         sma_train_losses=True, window_size=32):
-        if sma_train_losses:
+                         sma_losses=True, window_size_train=32, window_size_val=4):
+        if sma_losses:
             all_train_batch_losses_sma = []
-            for i in range(len(all_train_batch_losses) - window_size):
-                all_train_batch_losses_sma.append(np.mean(all_train_batch_losses[i:i + window_size]))
+            for i in range(len(all_train_batch_losses) - window_size_train):
+                all_train_batch_losses_sma.append(np.mean(all_train_batch_losses[i:i + window_size_train]))
 
             all_train_batch_losses = all_train_batch_losses_sma
+
+            all_mean_val_losses_per_val_interval_sma = []
+            for i in range(len(all_mean_val_losses_per_val_interval) - window_size_val):
+                all_mean_val_losses_per_val_interval_sma.append(
+                    np.mean(all_mean_val_losses_per_val_interval[i:i + window_size_val]))
+
+            all_mean_val_losses_per_val_interval = all_mean_val_losses_per_val_interval_sma
 
         x_train = list(range(len(all_train_batch_losses)))
         x_val = [i * validation_interval for i in range(len(all_mean_val_losses_per_val_interval))]
@@ -171,7 +178,7 @@ class SiameseBiEncoderTrainingPipeline:
         trace2 = go.Scatter(x=x_val, y=all_mean_val_losses_per_val_interval, mode='lines', name='Validation mean loss')
 
         yaxis_title_train = None
-        if sma_train_losses:
+        if sma_losses:
             yaxis_title_train = 'Train Loss (SMA)'
         else:
             yaxis_title_train = 'Train Loss (raw)'

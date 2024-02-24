@@ -31,7 +31,6 @@ def clear_chat_history_before_and_after_tests(client):
     client.delete("/clear")
 
 
-@pytest.mark.run_label
 @pytest.mark.parametrize("endpoint,expected_length", [
     ("/top_cos_sim_bi_cr", 6),
     ("/top_l2_bi_cr", 6),

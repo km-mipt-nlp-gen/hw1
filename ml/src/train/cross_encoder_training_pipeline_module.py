@@ -26,7 +26,7 @@ class CrossEncoderDataset(Dataset):
         return len(self.tokenized_texts["input_ids"])
 
     def tokenize_preprocessed_data(self, preprocessed_data):
-        tokenized_texts = self.constants.tokenizer(
+        tokenized_texts = self.constants.TOKENIZER(
             [data[self.constants.PREMISE_UPDATED_COL] for data in preprocessed_data],
             [data[self.constants.TARGET_CHAR_ANSWER_COL] for data in
              preprocessed_data],

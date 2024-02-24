@@ -34,9 +34,10 @@ class SiameseBiEncoder(torch.nn.Module):
 
 
 class CrossEncoder(torch.nn.Module):
-    def __init__(self, constants):
+    def __init__(self, constants, chat_util):
         super().__init__()
         self.constants = constants
+        self.chat_util = chat_util
         self.max_length = self.constants.MAX_LENGTH
         self.bert_model = AutoModel.from_pretrained('distilbert-base-uncased')
         self.bert_tokenizer = self.constants.TOKENIZER

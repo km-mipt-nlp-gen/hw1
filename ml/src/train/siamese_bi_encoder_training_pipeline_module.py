@@ -65,7 +65,7 @@ class SiameseBiEncoderTrainingPipeline:
         self.siamese_bi_encoder_dataset = SiameseBiEncoderDataset(preprocessed_data, constants, chat_util)
         self.bi_encoder_model = SiameseBiEncoder(constants, chat_util).to(self.constants.DEVICE)
 
-    def train(self):
+    def train(self, val_interval=1, n_epochs=1):
         train_ratio = 0.8
         n_total = len(self.siamese_bi_encoder_dataset)
         n_train = int(n_total * train_ratio)
@@ -84,9 +84,6 @@ class SiameseBiEncoderTrainingPipeline:
                                                     num_training_steps=total_steps - warmup_steps)
 
         loss_fn = torch.nn.CrossEntropyLoss()
-
-        n_epochs = 1
-        val_interval = 1
 
         train_step_fn = self.get_train_step_fn(optimizer, scheduler, loss_fn)
         val_step_fn = self.get_val_step_fn(loss_fn)

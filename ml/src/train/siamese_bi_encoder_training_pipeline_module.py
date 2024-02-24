@@ -156,27 +156,23 @@ class SiameseBiEncoderTrainingPipeline:
         return np.mean(train_batch_losses), train_batch_losses, mean_val_losses_per_val_interval
 
     def do_visualization(self, all_train_batch_losses, all_mean_val_losses_per_val_interval, validation_interval):
-        all_train_batch_losses = all_train_batch_losses
-        all_mean_val_losses_per_val_interval = all_mean_val_losses_per_val_interval
+        x_train = list(range(len(all_train_batch_losses)))
+        x_val = [i * validation_interval for i in range(len(all_mean_val_losses_per_val_interval))]
 
-        trace1 = go.Scatter(y=all_train_batch_losses, mode='lines', name='Train batch losses')
-        trace2 = go.Scatter(y=all_mean_val_losses_per_val_interval, mode='lines', name='Validation mean loss',
-                            xaxis='x2',
-                            yaxis='y2')
+        trace1 = go.Scatter(x=x_train, y=all_train_batch_losses, mode='lines', name='Train batch losses')
+        trace2 = go.Scatter(x=x_val, y=all_mean_val_losses_per_val_interval, mode='lines', name='Validation mean loss')
 
         layout = go.Layout(
-            xaxis=dict(domain=[0, 1]),
+            xaxis=dict(title='Batch Number'),
             yaxis=dict(title='Train Loss'),
-            xaxis2=dict(domain=[0, 1], anchor='y2'),
+            xaxis2=dict(title='Validation Interval (in Batches)', anchor='y2', overlaying='x', side='top'),
             yaxis2=dict(title='Validation Loss', overlaying='y', side='right'),
-            title=f"Train(per batch) and Validation (per validation interval equal to {validation_interval} batches) Losses"
+            title=f"Train (per batch) and Validation (per {validation_interval} batches) Losses"
         )
 
         fig = go.Figure(data=[trace1, trace2], layout=layout)
 
         fig.update_layout(
-            xaxis_title="Batch(for Train)/Validation interval(for Validation)",
-            yaxis_title="Loss",
             legend_title="Loss Type",
             height=600,
             width=800,

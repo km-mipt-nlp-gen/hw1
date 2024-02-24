@@ -38,7 +38,7 @@ class CrossEncoderDataset(Dataset):
         return [data[self.constants.LABEL_COL] for data in preprocessed_data]
 
 
-class SiameseBiEncoderTrainingPipeline:
+class CrossEncoderTrainingPipeline:
     def __init__(self, preprocessed_data, constants, chat_util):
         self.constants = constants
         self.chat_util = chat_util

@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import plotly.offline as pof
 pof.init_notebook_mode()
-pio.renderers.default = "png"
+pio.renderers.default = 'svg'
 
 import numpy as np
 
@@ -251,7 +251,7 @@ class SiameseBiEncoderTrainingPipeline:
             width=800,
         )
 
-        fig.show('png')
+        fig.show('svg')
 
     def do_hyperparam_search(self, model_init_fn, n_trials=4, n_epochs=1, val_interval=256):
         self.chat_util.info('Старт поиска в пространстве гиперпараметров..')

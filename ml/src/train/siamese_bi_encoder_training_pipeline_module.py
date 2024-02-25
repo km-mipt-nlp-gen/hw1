@@ -71,7 +71,7 @@ class SiameseBiEncoderTrainingPipeline:
 
     def train(self, val_interval=1, n_epochs=1, hyperparams_search=False, optuna_n_trials=4,
               hyper_params_search_n_epochs=1,
-              hyper_params_search_val_interval=256):
+              hyper_params_search_val_interval=256, user_opt_lr=2e-6, user_scheduler_type='linear'):
         train_ratio = 0.8
         n_total = len(self.siamese_bi_encoder_dataset)
         n_train = int(n_total * train_ratio)
@@ -88,7 +88,9 @@ class SiameseBiEncoderTrainingPipeline:
 
         optimizer, scheduler = self.set_hyperparams(hyperparams_search, total_steps, warmup_steps,
                                                     n_trials=optuna_n_trials, n_epochs=hyper_params_search_n_epochs,
-                                                    val_interval=hyper_params_search_val_interval)
+                                                    val_interval=hyper_params_search_val_interval,
+                                                    user_opt_lr=user_opt_lr,
+                                                    user_scheduler_type=user_scheduler_type)
         self.chat_util.info('Установлены данные гиперпараметров. Начать обучение модели..')
 
         loss_fn = torch.nn.CrossEntropyLoss()
@@ -118,14 +120,14 @@ class SiameseBiEncoderTrainingPipeline:
         return self.bi_encoder_model, all_train_batch_losses, all_mean_val_losses_per_val_interval
 
     def set_hyperparams(self, hyperparams_search, total_steps, warmup_steps, n_trials=4, n_epochs=1,
-                        val_interval=256):
+                        val_interval=256, user_opt_lr=2e-6, user_scheduler_type='linear'):
         if hyperparams_search:
             best_params = self.do_hyperparam_search(SiameseBiEncoder, n_trials=n_trials, n_epochs=n_epochs,
                                                     val_interval=val_interval)
             self.bi_encoder_model = SiameseBiEncoder(self.constants, self.chat_util).to(self.constants.DEVICE)
 
-            lr = best_params['opt_learning_rate']
-            optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=lr)
+            user_opt_lr = best_params['opt_learning_rate']
+            optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=user_opt_lr)
             scheduler_type = best_params['scheduler_type']
             if scheduler_type == 'linear':
                 scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
@@ -138,10 +140,19 @@ class SiameseBiEncoderTrainingPipeline:
                 self.chat_util.error(error_msg)
                 raise ValueError(error_msg)
         else:
-            lr = 2e-6
-            optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=lr)
-            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
-                                                        num_training_steps=total_steps - warmup_steps)
+            optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=user_opt_lr)
+            scheduler = None
+            if user_scheduler_type == 'linear':
+                scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                            num_training_steps=total_steps - warmup_steps)
+            elif user_scheduler_type == 'cosine':
+                scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                            num_training_steps=total_steps - warmup_steps)
+            else:
+                error_msg = "Неподдерживаемый тип scheduler"
+                self.chat_util.error(error_msg)
+                raise ValueError(error_msg)
+
         return optimizer, scheduler
 
     def get_train_step_fn(self, optimizer: torch.optim.Optimizer,
@@ -256,6 +267,9 @@ class SiameseBiEncoderTrainingPipeline:
     def objective(self, trial, model_init_fn, n_epochs, val_interval):
         lr = trial.suggest_loguniform('opt_learning_rate', 2e-6, 2e-5)
         scheduler_type = trial.suggest_categorical('scheduler_type', ['linear', 'cosine'])
+
+        self.chat_util.info(
+            f'Поиск гиперпараметров: кросс-валидация для набора параметров "opt_learning_rate"={lr}; "scheduler_type"={scheduler_type}')
 
         kf = KFold(n_splits=2, shuffle=True)
 

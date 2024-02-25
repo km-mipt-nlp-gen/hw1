@@ -32,8 +32,7 @@ def run_web_app(test_mode=False, primary_model=True):
                 constants.TARGET_CHAR_QA_PAIRS_EMBEDDINGS_PATH,
                 constants.TARGET_CHAR_ANSWERS_EMBEDDINGS_PATH,
                 constants.TARGET_CHAR_QA_PAIRS_FAISS_INDEX_PATH,
-                constants.TARGET_CHAR_QA_PAIRS_FAISS_PSA_INDEX_PATH
-            ),
+                constants.TARGET_CHAR_QA_PAIRS_FAISS_PSA_INDEX_PATH)
         else:
             chat_repository = ChatRepository(
                 chat_msg_history, target_char_questions_and_answers, target_char_answers,
@@ -41,8 +40,7 @@ def run_web_app(test_mode=False, primary_model=True):
                 constants.TARGET_CHAR_QA_PAIRS_EMBEDDINGS_PATH_AUX,
                 constants.TARGET_CHAR_ANSWERS_EMBEDDINGS_PATH_AUX,
                 constants.TARGET_CHAR_QA_PAIRS_FAISS_INDEX_PATH_AUX,
-                constants.TARGET_CHAR_QA_PAIRS_FAISS_PSA_INDEX_PATH_AUX
-            ),
+                constants.TARGET_CHAR_QA_PAIRS_FAISS_PSA_INDEX_PATH_AUX)
     else:
         chat_service_accelerator = ChatServiceAccelerator(
             bi_encoder_model, cross_encoder_model, target_char_questions_and_answers, target_char_answers,

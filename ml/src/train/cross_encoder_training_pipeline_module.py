@@ -1,5 +1,9 @@
 from models_zoo_module import CrossEncoder
 import plotly.graph_objects as go
+import plotly.io as pio
+import plotly.offline as pof
+pof.init_notebook_mode()
+pio.renderers.default = "png"
 
 import numpy as np
 

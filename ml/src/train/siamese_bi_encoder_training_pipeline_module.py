@@ -91,8 +91,6 @@ class SiameseBiEncoderTrainingPipeline:
                                                     val_interval=hyper_params_search_val_interval)
         self.chat_util.info('Установлены данные гиперпараметров. Начать обучение модели..')
 
-        self.bi_encoder_model = SiameseBiEncoder(self.constants, self.chat_util).to(self.constants.DEVICE)
-
         loss_fn = torch.nn.CrossEntropyLoss()
 
         train_step_fn = self.get_train_step_fn(optimizer, scheduler, loss_fn)
@@ -124,6 +122,8 @@ class SiameseBiEncoderTrainingPipeline:
         if hyperparams_search:
             best_params = self.do_hyperparam_search(SiameseBiEncoder, n_trials=n_trials, n_epochs=n_epochs,
                                                     val_interval=val_interval)
+            self.bi_encoder_model = SiameseBiEncoder(self.constants, self.chat_util).to(self.constants.DEVICE)
+
             lr = best_params['opt_learning_rate']
             optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=lr)
             scheduler_type = best_params['scheduler_type']

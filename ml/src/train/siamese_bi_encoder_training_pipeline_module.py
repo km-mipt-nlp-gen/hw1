@@ -6,7 +6,7 @@ import numpy as np
 
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
-from transformers.optimization import get_linear_schedule_with_warmup
+from transformers.optimization import get_linear_schedule_with_warmup, get_cosine_schedule_with_warmup
 
 import optuna
 from sklearn.model_selection import KFold
@@ -69,7 +69,9 @@ class SiameseBiEncoderTrainingPipeline:
         self.siamese_bi_encoder_dataset = SiameseBiEncoderDataset(preprocessed_data, constants, chat_util)
         self.bi_encoder_model = SiameseBiEncoder(constants, chat_util).to(self.constants.DEVICE)
 
-    def train(self, val_interval=1, n_epochs=1):
+    def train(self, val_interval=1, n_epochs=1, hyperparams_search=False, optuna_n_trials=4,
+              hyper_params_search_n_epochs=1,
+              hyper_params_search_val_interval=256):
         train_ratio = 0.8
         n_total = len(self.siamese_bi_encoder_dataset)
         n_train = int(n_total * train_ratio)
@@ -81,11 +83,14 @@ class SiameseBiEncoderTrainingPipeline:
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-        optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=2e-6)
         total_steps = len(train_dataset) // batch_size
         warmup_steps = int(0.1 * total_steps)
-        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
-                                                    num_training_steps=total_steps - warmup_steps)
+
+        optimizer, scheduler = self.set_hyperparams(hyperparams_search, total_steps, warmup_steps,
+                                                    n_trials=optuna_n_trials, n_epochs=hyper_params_search_n_epochs,
+                                                    val_interval=hyper_params_search_val_interval)
+
+        self.bi_encoder_model = SiameseBiEncoder(self.constants, self.chat_util).to(self.constants.DEVICE)
 
         loss_fn = torch.nn.CrossEntropyLoss()
 
@@ -110,6 +115,31 @@ class SiameseBiEncoderTrainingPipeline:
         self.do_visualization(all_train_batch_losses, all_mean_val_losses_per_val_interval, val_interval)
 
         return self.bi_encoder_model, all_train_batch_losses, all_mean_val_losses_per_val_interval
+
+    def set_hyperparams(self, hyperparams_search, total_steps, warmup_steps, n_trials=4, n_epochs=1,
+                        val_interval=256):
+        if hyperparams_search:
+            best_params = self.do_hyperparam_search(SiameseBiEncoder, n_trials=n_trials, n_epochs=n_epochs,
+                                                    val_interval=val_interval)
+            lr = best_params['opt_learning_rate']
+            optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=lr)
+            scheduler_type = best_params['scheduler_type']
+            if scheduler_type == 'linear':
+                scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                            num_training_steps=total_steps - warmup_steps)
+            elif scheduler_type == 'cosine':
+                scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                            num_training_steps=total_steps - warmup_steps)
+            else:
+                error_msg = "Неподдерживаемый тип scheduler"
+                self.chat_util.error(error_msg)
+                raise ValueError(error_msg)
+        else:
+            lr = 2e-6
+            optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=lr)
+            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                        num_training_steps=total_steps - warmup_steps)
+        return optimizer, scheduler
 
     def get_train_step_fn(self, optimizer: torch.optim.Optimizer,
                           scheduler: torch.optim.lr_scheduler.LambdaLR, loss_fn: torch.nn.CrossEntropyLoss
@@ -205,17 +235,24 @@ class SiameseBiEncoderTrainingPipeline:
 
         fig.show()
 
-    def do_hyperparam_search(self, model_init_fn, n_trials=4, n_epochs=1, val_interval=963):  # todo change
+    def do_hyperparam_search(self, model_init_fn, n_trials=4, n_epochs=1, val_interval=256):
+        self.chat_util.info('Старт поиска в пространстве гиперпараметров..')
         study = optuna.create_study(direction='minimize')
         study.optimize(lambda trial: self.objective(trial, model_init_fn, n_epochs, val_interval), n_trials=n_trials)
 
         best_params = study.best_trial.params
-        print("Best parameters:", best_params)
+        best_lr = best_params['opt_learning_rate']
+        best_scheduler_type = best_params['scheduler_type']
+
+        self.chat_util.info('Поиск в пространстве гиперпараметров завершен.')
+        self.chat_util.info(f"Лучший Learning Rate: {best_lr}")
+        self.chat_util.info(f"Лучший Scheduler Type: {best_scheduler_type}")
 
         return best_params
 
     def objective(self, trial, model_init_fn, n_epochs, val_interval):
         lr = trial.suggest_loguniform('opt_learning_rate', 2e-6, 2e-5)
+        scheduler_type = trial.suggest_categorical('scheduler_type', ['linear', 'cosine'])
 
         kf = KFold(n_splits=2, shuffle=True)
 
@@ -227,13 +264,14 @@ class SiameseBiEncoderTrainingPipeline:
             val_dataset = Subset(self.siamese_bi_encoder_dataset, val_index)
 
             best_val_score = self.train_and_evaluate(train_dataset, val_dataset, n_epochs=n_epochs,
-                                                    val_interval=val_interval, lr=lr)
+                                                     val_interval=val_interval, lr=lr, scheduler_type=scheduler_type)
             all_splits_val_scores.append(best_val_score)
 
         mean_val_score = np.mean(all_splits_val_scores)
         return mean_val_score
 
-    def train_and_evaluate(self, train_dataset, val_dataset, val_interval=1, n_epochs=1, lr=2e-6):
+    def train_and_evaluate(self, train_dataset, val_dataset, val_interval=1, n_epochs=1, lr=2e-6,
+                           scheduler_type='linear'):
         batch_size = 16
         train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
@@ -241,8 +279,18 @@ class SiameseBiEncoderTrainingPipeline:
         optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=lr)
         total_steps = len(train_dataset) // batch_size
         warmup_steps = int(0.1 * total_steps)
-        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
-                                                    num_training_steps=total_steps - warmup_steps)
+
+        scheduler = None
+        if scheduler_type == 'linear':
+            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                        num_training_steps=total_steps - warmup_steps)
+        elif scheduler_type == 'cosine':
+            scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                        num_training_steps=total_steps - warmup_steps)
+        else:
+            error_msg = "Неподдерживаемый тип scheduler"
+            self.chat_util.error(error_msg)
+            raise ValueError(error_msg)
 
         loss_fn = torch.nn.CrossEntropyLoss()
 

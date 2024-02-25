@@ -204,7 +204,7 @@ class SiameseBiEncoderTrainingPipeline:
         return np.mean(train_batch_losses), train_batch_losses, mean_val_losses_per_val_interval
 
     def do_visualization(self, all_train_batch_losses, all_mean_val_losses_per_val_interval, validation_interval,
-                         sma_losses=True, window_size_train=32, window_size_val=4):
+                         sma_losses=True, window_size_train=32, window_size_val=4, title_msg_prefix='Тренировка'):
         if sma_losses:
             all_train_batch_losses_sma = []
             for i in range(len(all_train_batch_losses) - window_size_train):
@@ -236,7 +236,7 @@ class SiameseBiEncoderTrainingPipeline:
             yaxis=dict(title=yaxis_title_train),
             xaxis2=dict(title='Validation Interval (in Batches)', anchor='y2', overlaying='x', side='top'),
             yaxis2=dict(title='Validation Loss', overlaying='y', side='right'),
-            title=f"Siamese-Bi-Encoder: Train (per batch) and Validation (per {validation_interval} batches) Losses"
+            title=f"{title_msg_prefix} Siamese-Bi-Encoder: Train (per batch) and Validation (per {validation_interval} batches) Losses"
         )
 
         fig = go.Figure(data=[trace1, trace2], layout=layout)
@@ -280,8 +280,13 @@ class SiameseBiEncoderTrainingPipeline:
             train_dataset = Subset(self.siamese_bi_encoder_dataset, train_index)
             val_dataset = Subset(self.siamese_bi_encoder_dataset, val_index)
 
-            best_val_score = self.train_and_evaluate(train_dataset, val_dataset, n_epochs=n_epochs,
-                                                     val_interval=val_interval, lr=lr, scheduler_type=scheduler_type)
+            best_val_score, all_train_batch_losses, all_mean_val_losses_per_val_interval = self.train_and_evaluate(
+                train_dataset, val_dataset, n_epochs=n_epochs,
+                val_interval=val_interval, lr=lr, scheduler_type=scheduler_type)
+
+            self.do_visualization(all_train_batch_losses, all_mean_val_losses_per_val_interval, val_interval,
+                                  window_size_val=2, title_msg_prefix='Поиск в пространстве гиперпараметров')
+
             all_splits_val_scores.append(best_val_score)
 
         mean_val_score = np.mean(all_splits_val_scores)
@@ -314,13 +319,15 @@ class SiameseBiEncoderTrainingPipeline:
         train_step_fn = self.get_train_step_fn(optimizer, scheduler, loss_fn)
         val_step_fn = self.get_val_step_fn(loss_fn)
 
+        all_train_batch_losses = []
         all_mean_val_losses_per_val_interval = []
 
         for epoch in range(1, n_epochs + 1):
             interval = val_interval
-            _, _, mean_val_losses_per_val_interval = self.mini_batch(
+            _, train_batch_losses, mean_val_losses_per_val_interval = self.mini_batch(
                 train_dataloader, train_step_fn, val_dataloader, val_step_fn, val_interval=interval)
+            all_train_batch_losses.extend(train_batch_losses)
             all_mean_val_losses_per_val_interval.extend(mean_val_losses_per_val_interval)
 
         min_val_loss = min(all_mean_val_losses_per_val_interval)
-        return min_val_loss
+        return min_val_loss, all_train_batch_losses, all_mean_val_losses_per_val_interval

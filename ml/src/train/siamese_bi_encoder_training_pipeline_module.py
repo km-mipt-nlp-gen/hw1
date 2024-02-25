@@ -8,6 +8,10 @@ import torch
 from torch.utils.data import Dataset, DataLoader, random_split
 from transformers.optimization import get_linear_schedule_with_warmup
 
+import optuna
+from sklearn.model_selection import KFold
+from torch.utils.data import Subset, DataLoader
+
 
 class SiameseBiEncoderDataset(Dataset):
     def __init__(self, preprocessed_data, constants, chat_util):
@@ -200,3 +204,58 @@ class SiameseBiEncoderTrainingPipeline:
         )
 
         fig.show()
+
+    def do_hyperparam_search(self, model_init_fn, n_trials=4, n_epochs=1, val_interval=963):  # todo change
+        study = optuna.create_study(direction='minimize')
+        study.optimize(lambda trial: self.objective(trial, model_init_fn, n_epochs, val_interval), n_trials=n_trials)
+
+        best_params = study.best_trial.params
+        print("Best parameters:", best_params)
+
+        return best_params
+
+    def objective(self, trial, model_init_fn, n_epochs, val_interval):
+        lr = trial.suggest_loguniform('opt_learning_rate', 2e-6, 2e-5)
+
+        kf = KFold(n_splits=2, shuffle=True)
+
+        all_splits_val_scores = []
+        for train_index, val_index in kf.split(range(len(self.siamese_bi_encoder_dataset))):
+            self.bi_encoder_model = model_init_fn(self.constants, self.chat_util).to(self.constants.DEVICE)
+
+            train_dataset = Subset(self.siamese_bi_encoder_dataset, train_index)
+            val_dataset = Subset(self.siamese_bi_encoder_dataset, val_index)
+
+            best_val_score = self.train_and_evaluate(train_dataset, val_dataset, n_epochs=n_epochs,
+                                                    val_interval=val_interval, lr=lr)
+            all_splits_val_scores.append(best_val_score)
+
+        mean_val_score = np.mean(all_splits_val_scores)
+        return mean_val_score
+
+    def train_and_evaluate(self, train_dataset, val_dataset, val_interval=1, n_epochs=1, lr=2e-6):
+        batch_size = 16
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
+        optimizer = torch.optim.AdamW(self.bi_encoder_model.parameters(), lr=lr)
+        total_steps = len(train_dataset) // batch_size
+        warmup_steps = int(0.1 * total_steps)
+        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps,
+                                                    num_training_steps=total_steps - warmup_steps)
+
+        loss_fn = torch.nn.CrossEntropyLoss()
+
+        train_step_fn = self.get_train_step_fn(optimizer, scheduler, loss_fn)
+        val_step_fn = self.get_val_step_fn(loss_fn)
+
+        all_mean_val_losses_per_val_interval = []
+
+        for epoch in range(1, n_epochs + 1):
+            interval = val_interval
+            _, _, mean_val_losses_per_val_interval = self.mini_batch(
+                train_dataloader, train_step_fn, val_dataloader, val_step_fn, val_interval=interval)
+            all_mean_val_losses_per_val_interval.extend(mean_val_losses_per_val_interval)
+
+        min_val_loss = min(all_mean_val_losses_per_val_interval)
+        return min_val_loss

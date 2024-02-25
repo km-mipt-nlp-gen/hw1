@@ -147,7 +147,7 @@ class ChatService:
         unique_top_answers = [self.target_char_answers[idx] for idx in unique_top_indices]
 
         self.chat_util.debug("find_top_n_unique_cosine_sim - сделано")
-        print(unique_top_indices, unique_top_similarities, unique_top_question_answer_pairs)
+        self.chat_util.debug(unique_top_indices, unique_top_similarities, unique_top_question_answer_pairs)
         return unique_top_answers
 
     def find_top_n_unique_l2_bi_plus_cross_enc(self, query, user):
@@ -186,7 +186,7 @@ class ChatService:
 
         top_n_qa_pairs = [self.repository.target_char_questions_and_answers[idx] for _, idx in top_n_unique]
         unique_top_answers = [self.target_char_answers[idx] for _, idx in top_n_unique]
-        print(top_n_qa_pairs, top_n_unique)
+        self.chat_util.debug(top_n_qa_pairs, top_n_unique)
 
         self.chat_util.debug("find_top_n_unique_l2 - сделано")
         return unique_top_answers
@@ -226,7 +226,7 @@ class ChatService:
                 top_n_unique.append((dist, idx))
         top_n_qa_pairs = [self.repository.target_char_questions_and_answers[idx] for _, idx in top_n_unique]
         unique_top_answers = [self.target_char_answers[idx] for _, idx in top_n_unique]
-        print(top_n_qa_pairs, top_n_unique)
+        self.chat_util.debug(top_n_qa_pairs, top_n_unique)
 
         self.chat_util.debug("find_top_n_unique_l2_psa - сделано")
         return unique_top_answers
@@ -266,7 +266,7 @@ class ChatService:
         unique_top_questions_answers_and_dist = [(self.target_char_questions_and_answers[idx], all_scores[idx]) for idx
                                                  in sorted_indices]
         unique_top_answers = [self.target_char_answers[idx] for idx in sorted_indices]
-        print(unique_top_questions_answers_and_dist)
+        self.chat_util.debug(unique_top_questions_answers_and_dist)
 
         # добавить лучшую реплику к chat_msg_history
         self.chat_msg_history.append(unique_top_answers[0])

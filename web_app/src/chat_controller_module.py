@@ -96,15 +96,15 @@ class ChatController:
 
     def init_conf(self):
         if self.app.config.get("TESTING"):
-            print('Запуск в режиме тестирования, пропуск авторизации для создания туннеля.')
-            self.chat_util.logger.debug('Запуск в режиме тестирования, пропуск авторизации для создания туннеля.')
+            self.chat_util.debug('Запуск в режиме тестирования, пропуск авторизации для создания туннеля.')
+            self.chat_util.debug('Запуск в режиме тестирования, пропуск авторизации для создания туннеля.')
         else:
             conf.get_default().auth_token = getpass.getpass()
 
     def run(self):
         if self.app.config.get("TESTING"):
-            print('Запуск в режиме тестирования, пропуск создания туннеля с облачным сервисом.')
-            self.chat_util.logger.debug('Запуск в режиме тестирования, пропуск создания туннеля с облачным сервисом.')
+            self.chat_util.debug('Запуск в режиме тестирования, пропуск создания туннеля с облачным сервисом.')
+            self.chat_util.debug('Запуск в режиме тестирования, пропуск создания туннеля с облачным сервисом.')
         else:
             tunnels = ngrok.get_tunnels()
             for tunnel in tunnels:
@@ -112,7 +112,7 @@ class ChatController:
 
             ngrok.kill()
             public_url = ngrok.connect(5000).public_url
-            print(" * ngrok tunnel \"{}\" -> \"http://127.0.0.1:{}/\"".format(public_url, 5000))
+            self.chat_util.debug(" * ngrok tunnel \"{}\" -> \"http://127.0.0.1:{}/\"".format(public_url, 5000))
             self.app.config["BASE_URL"] = public_url
 
             # запустить в отдельном потоке

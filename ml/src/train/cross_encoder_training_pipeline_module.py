@@ -165,7 +165,7 @@ class CrossEncoderTrainingPipeline:
         trace2 = go.Scatter(x=x_val, y=all_mean_val_losses_per_val_interval, mode='lines', name='Validation mean loss')
 
         yaxis_title_train = None
-        if sma_train_losses:
+        if sma_losses:
             yaxis_title_train = 'Train Loss (SMA)'
         else:
             yaxis_title_train = 'Train Loss (raw)'

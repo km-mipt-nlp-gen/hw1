@@ -190,4 +190,4 @@ class CrossEncoderTrainingPipeline:
             width=800,
         )
 
-        fig.show()
+        fig.show('png')

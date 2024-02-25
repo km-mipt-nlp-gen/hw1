@@ -75,11 +75,7 @@ def initialize_models(constants, chat_util, primary_model):
     bi_encoder_model = SiameseBiEncoder(constants, chat_util).to(constants.DEVICE)
     bi_encoder_model.load_state_dict(torch.load(bi_encoder_path, map_location=constants.DEVICE))
 
-    cross_encoder_model = CrossEncoder(constants).to(constants.DEVICE)
+    cross_encoder_model = CrossEncoder(constants, chat_util).to(constants.DEVICE)
     cross_encoder_model.load_state_dict(torch.load(cross_encoder_path, map_location=constants.DEVICE))
 
     return bi_encoder_model, cross_encoder_model
-
-# Разкомментировать для запуска вне colab
-# if __name__ == "__main__":
-#     initialize_and_run_application()

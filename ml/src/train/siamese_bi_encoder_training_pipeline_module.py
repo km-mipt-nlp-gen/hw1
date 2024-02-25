@@ -274,7 +274,10 @@ class SiameseBiEncoderTrainingPipeline:
         kf = KFold(n_splits=2, shuffle=True)
 
         all_splits_val_scores = []
+        split_number = 1
         for train_index, val_index in kf.split(range(len(self.siamese_bi_encoder_dataset))):
+            self.chat_util.info(f'Поиск гиперпараметров: кросс-валидация - обучение на KFold {split_number}')
+
             self.bi_encoder_model = model_init_fn(self.constants, self.chat_util).to(self.constants.DEVICE)
 
             train_dataset = Subset(self.siamese_bi_encoder_dataset, train_index)
@@ -285,9 +288,11 @@ class SiameseBiEncoderTrainingPipeline:
                 val_interval=val_interval, lr=lr, scheduler_type=scheduler_type)
 
             self.do_visualization(all_train_batch_losses, all_mean_val_losses_per_val_interval, val_interval,
-                                  window_size_val=2, title_msg_prefix='Поиск в пространстве гиперпараметров')
+                                  window_size_val=2,
+                                  title_msg_prefix=f'Поиск гиперпараметров: кросс-валидация ("opt_learning_rate"={lr}; "scheduler_type"={scheduler_type}, KFold={split_number})')
 
             all_splits_val_scores.append(best_val_score)
+            split_number = split_number + 1
 
         mean_val_score = np.mean(all_splits_val_scores)
         return mean_val_score

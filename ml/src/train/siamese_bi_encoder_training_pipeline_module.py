@@ -89,6 +89,7 @@ class SiameseBiEncoderTrainingPipeline:
         optimizer, scheduler = self.set_hyperparams(hyperparams_search, total_steps, warmup_steps,
                                                     n_trials=optuna_n_trials, n_epochs=hyper_params_search_n_epochs,
                                                     val_interval=hyper_params_search_val_interval)
+        self.chat_util.info('Установлены данные гиперпараметров. Начать обучение модели..')
 
         self.bi_encoder_model = SiameseBiEncoder(self.constants, self.chat_util).to(self.constants.DEVICE)
 
@@ -112,6 +113,8 @@ class SiameseBiEncoderTrainingPipeline:
             self.chat_util.info(
                 f"Epoch {epoch}: Mean train loss (per batch) = {mean_train_batch_loss:.4f}, Last Validation Loss (per all val dataset) = {mean_val_losses_per_val_interval[-1]:.4f}")
 
+        self.chat_util.info(
+            f'Обучение завершено, последний результат функции потерь на валидационном наборе: {all_mean_val_losses_per_val_interval[-1]}')
         self.do_visualization(all_train_batch_losses, all_mean_val_losses_per_val_interval, val_interval)
 
         return self.bi_encoder_model, all_train_batch_losses, all_mean_val_losses_per_val_interval
